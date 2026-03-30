@@ -1,0 +1,443 @@
+= Checkmarx One SAST scan and publish to Platform
+
+Use this action to scan source code repositories for security vulnerabilities with the Checkmarx One SAST scanner.
+The action output can be used as a quality gate in subsequent GitHub Actions steps or jobs.
+
+Checkmarx One SAST (Static Application Security Testing) is a comprehensive security solution that scans source code for security vulnerabilities, code quality issues, and compliance violations.
+
+Add a Checkmarx One SAST scan to your workflows in CloudBees platform to:
+
+* Detect security vulnerabilities in source code before deployment.
+* Identify potential security issues in multiple programming languages including Java, JavaScript, Python, Go, C#, PHP, Ruby, and more.
+* Gain insight into code security risks and how to fix issues.
+* Ensure compliance with security best practices and industry standards.
+* Shift security left by catching issues early in the development lifecycle.
+
+CloudBees platform enables you to run a Checkmarx One SAST scan either implicitly or explicitly.
+
+== Explicit and implicit scan types
+
+An implicit scan is automatically triggered, and an explicit scan is one you configure to be invoked in a step of your workflow.
+To learn more about the differences between explicit and implicit scans, refer to link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/actions#security[Security scan actions].
+
+To set up implicit scanning, refer to link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/aspm/implicit-security-analysis[Code and binary security analysis].
+
+== Prerequisites
+
+Set up the CloudBees platform and GHA to work together, providing key features of the platform to GHA workflows. Refer to link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/github-actions/gha-getting-started[Getting started with GHA integration] for more information.
+
+== How the scanner works
+
+The Checkmarx One SAST scanner architectural components are:
+
+* Checkmarx One Scanner: The core scanning engine that performs static application security testing.
+* Checkmarx Query Engine: Evaluates source code against security rules and vulnerability patterns.
+* Checkmarx Knowledge Base: Contains comprehensive security rules and vulnerability patterns across multiple languages and frameworks.
+* Checkmarx One API: Communicates scan results to the Checkmarx One platform for centralized management.
+
+The scanning process is as follows:
+
+. The Checkmarx One SAST scanner identifies source code files in your repository.
+. Source code is packaged and prepared for analysis.
+. Source code is parsed and analyzed against Checkmarx's comprehensive security vulnerability database.
+. Security vulnerabilities and code quality issues are identified using advanced data flow analysis and pattern matching.
+. Results are reported with severity levels, detailed descriptions, and remediation guidance.
+. The scan results are uploaded to the CloudBees platform.
+. Results are made available as actionable outputs for quality gates and downstream workflow steps.
+
+NOTE: For more information about Checkmarx One SAST, refer to the link:https://checkmarx.com/product/application-security-platform/[Checkmarx One documentation].
+
+== Inputs
+
+[cols="2a,1a,1a,3a",options="header"]
+.Input details
+|===
+
+| Input name
+| Data type
+| Required?
+| Description
+
+| `url`
+| String
+| Yes
+| The Checkmarx One base URL.
+
+| `tenant`
+| String
+| Yes
+| The Checkmarx One tenant name.
+
+| `api-key`
+| String
+| Yes
+| The Checkmarx One API key for authentication.
+
+| `cloudbees-url`
+| String
+| No
+| CloudBees API URL. Default: `https://api.cloudbees.io`
+
+| `ref`
+| String
+| No
+| Specify the ref to be checked out and scanned.
+
+| `workspace-dir`
+| String
+| No
+| The file path of the code to be scanned.
+
+| `step-id`
+| String
+| No
+| The ID of the step in the workflow.
+
+|===
+
+== Outputs
+
+[cols="2a,1a,4a",options="header"]
+.Output details
+|===
+
+| Output name
+| Data type
+| Description
+
+| `critical-count`
+| String
+| The number of *Critical* severity issues discovered during the scan.
+
+| `very-high-count`
+| String
+| The number of *Very High* severity issues discovered during the scan.
+
+| `high-count`
+| String
+| The number of *High* severity issues discovered during the scan.
+
+| `medium-count`
+| String
+| The number of *Medium* severity issues discovered during the scan.
+
+| `low-count`
+| String
+| The number of *Low* severity issues discovered during the scan.
+
+|===
+
+IMPORTANT: This action uses GitHub OIDC authentication to securely communicate with CloudBees platform.
+Be sure to set permissions to `id-token: write` in your workflow.
+
+== Usage examples
+
+The following is a basic example of using this action:
+
+[source,yaml]
+----
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Scan with Checkmarx One SAST
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+----
+
+=== Using the action output
+
+You can use the output values from this action in downstream steps and jobs.
+The following example uses the action output in a downstream step of the same job:
+
+[source, yaml,role="default-expanded"]
+----
+name: my-workflow
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  checkmarxone-sast-scan-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: checkmarxone-sast-step
+        name: Checkmarx One SAST Scan
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+      - name: Source dir examine
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/work" -w /work golang:1.20.3-alpine3.17 ls -latR /work
+
+      - id: print-outputs-from-checkmarxone-sast-step
+        name: Print outputs from the upstream Checkmarx One SAST Scan step
+        run: |
+          # Printing all outputs
+          echo "Outputs from upstream Checkmarx One SAST Scan step:"
+          echo "Critical count: ${{ steps.checkmarxone-sast-step.outputs.critical-count }}"
+          echo "Very high count: ${{ steps.checkmarxone-sast-step.outputs.very-high-count }}"
+          echo "High count: ${{ steps.checkmarxone-sast-step.outputs.high-count }}"
+          echo "Medium count: ${{ steps.checkmarxone-sast-step.outputs.medium-count }}"
+          echo "Low count: ${{ steps.checkmarxone-sast-step.outputs.low-count }}"
+----
+
+The following example uses the action output in a downstream job:
+
+[source, yaml,role="default-expanded"]
+----
+name: my-workflow
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    outputs:
+      checkmarxone-sast-job-output-critical: ${{ steps.checkmarxone-sast-step.outputs.critical-count }}
+      checkmarxone-sast-job-output-very-high: ${{ steps.checkmarxone-sast-step.outputs.very-high-count }}
+      checkmarxone-sast-job-output-high: ${{ steps.checkmarxone-sast-step.outputs.high-count }}
+      checkmarxone-sast-job-output-medium: ${{ steps.checkmarxone-sast-step.outputs.medium-count }}
+      checkmarxone-sast-job-output-low: ${{ steps.checkmarxone-sast-step.outputs.low-count }}
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: checkmarxone-sast-step
+        name: Checkmarx One SAST scan
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+      - name: Source dir examine
+        run: |
+          ls -latR ${GITHUB_WORKSPACE}
+
+  job2:
+    runs-on: ubuntu-latest
+    needs: job1
+    steps:
+      - id: print-outputs-from-job1
+        name: Print outputs from upstream job1
+        run: |
+          # Printing all outputs
+          echo "Outputs from upstream Checkmarx One SAST Scan job:"
+          echo "Critical count: ${{ needs.job1.outputs.checkmarxone-sast-job-output-critical }}"
+          echo "Very high count: ${{ needs.job1.outputs.checkmarxone-sast-job-output-very-high }}"
+          echo "High count: ${{ needs.job1.outputs.checkmarxone-sast-job-output-high }}"
+          echo "Medium count: ${{ needs.job1.outputs.checkmarxone-sast-job-output-medium }}"
+          echo "Low count: ${{ needs.job1.outputs.checkmarxone-sast-job-output-low }}"
+----
+
+=== Full workflow and run example
+
+The following GHA workflow example scans a source code repository with Checkmarx One SAST scanner.
+
+.Example GHA workflow YAML file
+[.collapsible]
+--
+
+[source, yaml,role="default-expanded"]
+----
+name: Checkmarx One SAST scan
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  checkmarxone-sast-scan:
+    runs-on:
+     ubuntu-latest
+    outputs:
+      checkmarxone-sast-job-output-critical: ${{ steps.checkmarxone-sast-step.outputs.critical-count }}
+      checkmarxone-sast-job-output-very-high: ${{ steps.checkmarxone-sast-step.outputs.very-high-count }}
+      checkmarxone-sast-job-output-high: ${{ steps.checkmarxone-sast-step.outputs.high-count }}
+      checkmarxone-sast-job-output-medium: ${{ steps.checkmarxone-sast-step.outputs.medium-count }}
+      checkmarxone-sast-job-output-low: ${{ steps.checkmarxone-sast-step.outputs.low-count }}
+    steps:
+
+      # Checkout code
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # Print run info
+      - name: Print run info
+        shell: bash
+        run: |
+          echo "Ref name is $GITHUB_RUN_ID"
+          echo "Source is ${{ github.server_url }}/${{ github.repository }}"
+          echo "Subject is $GITHUB_WORKFLOW_REF|${{ github.run_id }}|${{ github.run_attempt }}|${{ github.run_number }}"
+          echo "Job is $GITHUB_JOB"
+
+      # Run Checkmarx One SAST scan
+      - name: Checkmarx One SAST scan
+        id: checkmarxone-sast-step
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+      - name: Source dir examine
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/work" -w /work golang:1.20.3-alpine3.17 ls -latR /work
+
+      - id: print-outputs-from-checkmarxone-sast-step
+        name: Print outputs from the upstream Checkmarx One SAST Scan step
+        run: |
+          # Printing all outputs
+          echo "Outputs from upstream Checkmarx One SAST Scan step:"
+          echo "Critical count: ${{ steps.checkmarxone-sast-step.outputs.critical-count }}"
+          echo "Very high count: ${{ steps.checkmarxone-sast-step.outputs.very-high-count }}"
+          echo "High count: ${{ steps.checkmarxone-sast-step.outputs.high-count }}"
+          echo "Medium count: ${{ steps.checkmarxone-sast-step.outputs.medium-count }}"
+          echo "Low count: ${{ steps.checkmarxone-sast-step.outputs.low-count }}"
+
+----
+--
+
+After the GHA run has completed, the security findings are collected and displayed in the link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/aspm/security-center[Security center] of the component containing the workflow.
+
+=== Scan Java applications with Checkmarx One SAST
+
+The following GHA workflow example scans Java application code with Checkmarx One SAST.
+
+[source, yaml,role="default-expanded"]
+----
+name: Checkmarx One SAST scan
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  checkmarxone-sast-java-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Java source code
+        uses: actions/checkout@v4
+
+      - name: Checkmarx One SAST scan on Java application
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+----
+
+=== Scan JavaScript/TypeScript applications with Checkmarx One SAST
+
+The following GHA workflow example scans JavaScript/TypeScript application code with Checkmarx One SAST.
+
+[source, yaml,role="default-expanded"]
+----
+name: Checkmarx One SAST scan
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  checkmarxone-sast-js-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out JavaScript/TypeScript source code
+        uses: actions/checkout@v4
+
+      - name: Checkmarx One SAST scan on JavaScript/TypeScript application
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+----
+
+=== Scan Python applications with Checkmarx One SAST
+
+The following GHA workflow example scans Python application code with Checkmarx One SAST.
+
+[source, yaml,role="default-expanded"]
+----
+name: Checkmarx One SAST scan
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  checkmarxone-sast-python-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Python source code
+        uses: actions/checkout@v4
+
+      - name: Checkmarx One SAST scan on Python application
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+
+----
+
+== License
+
+This code is made available under the
+link:https://opensource.org/license/mit/[MIT license].
+
+== References
+
+* Learn more about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/github-actions/intro[Using GitHub Actions with CloudBees platform].
+* Learn about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/[CloudBees platform].
+* Learn about link:https://checkmarx.com/product/application-security-platform/[Checkmarx One SAST].
+
+
+
