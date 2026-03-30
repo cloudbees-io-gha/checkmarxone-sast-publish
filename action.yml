@@ -84,7 +84,7 @@ runs:
           -e GITHUB_ENV="$GITHUB_ENV" \
           -e ACTIONS_ID_TOKEN_REQUEST_TOKEN=$ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:4c77dde9993b106f75912c2262d20a9d74ab4ac3 \
+          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:81b0453072476e33ca097de87ba13c5127b45f74 \
           generate-references --asset-type "CODE"
 
     - name: Run SCC Scan for tag generation
@@ -97,7 +97,7 @@ runs:
           -e RUN_ID="${{ github.run_id }}" \
           -e JOB_ID="${{ github.job }}" \
           -e STEP_ID="${{ inputs.step-id }}" \
-          public.ecr.aws/l7o7z1g8/actions/assets-scc-scanner:7fa7cb33d5da26ef1477d3dc3e4846a770fa3aa0 \
+          public.ecr.aws/l7o7z1g8/actions/assets-scc-scanner:884fecd572bb127890a823acc378f1951e72314a \
           --mode single
 
     - name: Run Checkmarx One SAST plugin
@@ -139,6 +139,6 @@ runs:
           -e GITHUB_OUTPUT="$GITHUB_OUTPUT" \
           -e ACTIONS_ID_TOKEN_REQUEST_TOKEN=$ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:4c77dde9993b106f75912c2262d20a9d74ab4ac3 \
+          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:81b0453072476e33ca097de87ba13c5127b45f74 \
           process-outputs
 
