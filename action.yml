@@ -111,7 +111,7 @@ runs:
           -e JOB_ID="${{ github.job }}" \
           -e STEP_ID="${{ inputs.step-id }}" \
           -e CHECKMARXONE_SAST_PROPS='{"baseURL": "${{ inputs.url }}", "tenant": "${{ inputs.tenant }}", "apiKey": "${{ inputs.api-key }}"}' \
-          020229604682.dkr.ecr.us-east-1.amazonaws.com/actions/assets-checkmarxone-sast-scanner:latest\= \
+          public.ecr.aws/l7o7z1g8/actions/assets-checkmarxone-sast-scanner:0eb1ca83f85f014381ed2501d0d6582ea343eab2 \
           --mode single
 
 
