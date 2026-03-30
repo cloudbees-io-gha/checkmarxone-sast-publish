@@ -84,7 +84,7 @@ runs:
           -e GITHUB_ENV="$GITHUB_ENV" \
           -e ACTIONS_ID_TOKEN_REQUEST_TOKEN=$ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:81b0453072476e33ca097de87ba13c5127b45f74 \
+          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:4c77dde9993b106f75912c2262d20a9d74ab4ac3 \
           generate-references --asset-type "CODE"
 
     - name: Run SCC Scan for tag generation
@@ -139,6 +139,6 @@ runs:
           -e GITHUB_OUTPUT="$GITHUB_OUTPUT" \
           -e ACTIONS_ID_TOKEN_REQUEST_TOKEN=$ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           -e ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:81b0453072476e33ca097de87ba13c5127b45f74 \
+          public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:4c77dde9993b106f75912c2262d20a9d74ab4ac3 \
           process-outputs
 
