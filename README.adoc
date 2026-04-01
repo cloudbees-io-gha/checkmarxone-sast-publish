@@ -31,7 +31,6 @@ Set up the CloudBees platform and GHA to work together, providing key features o
 The Checkmarx One SAST scanner architectural components are:
 
 * Checkmarx One Scanner: The core scanning engine that performs static application security testing.
-* Checkmarx Query Engine: Evaluates source code against security rules and vulnerability patterns.
 * Checkmarx Knowledge Base: Contains comprehensive security rules and vulnerability patterns across multiple languages and frameworks.
 * Checkmarx One API: Communicates scan results to the Checkmarx One platform for centralized management.
 
@@ -45,7 +44,7 @@ The scanning process is as follows:
 . The scan results are uploaded to the CloudBees platform.
 . Results are made available as actionable outputs for quality gates and downstream workflow steps.
 
-NOTE: For more information about Checkmarx One SAST, refer to the link:https://checkmarx.com/product/application-security-platform/[Checkmarx One documentation].
+NOTE: For more information about Checkmarx One SAST, refer to the link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html
 
 == Inputs
 
@@ -73,11 +72,6 @@ NOTE: For more information about Checkmarx One SAST, refer to the link:https://c
 | Yes
 | The Checkmarx One API key for authentication.
 
-| `cloudbees-url`
-| String
-| No
-| CloudBees API URL. Default: `https://api.cloudbees.io`
-
 | `ref`
 | String
 | No
@@ -88,10 +82,6 @@ NOTE: For more information about Checkmarx One SAST, refer to the link:https://c
 | No
 | The file path of the code to be scanned.
 
-| `step-id`
-| String
-| No
-| The ID of the step in the workflow.
 
 |===
 
@@ -437,7 +427,8 @@ link:https://opensource.org/license/mit/[MIT license].
 
 * Learn more about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/github-actions/intro[Using GitHub Actions with CloudBees platform].
 * Learn about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/[CloudBees platform].
-* Learn about link:https://checkmarx.com/product/application-security-platform/[Checkmarx One SAST].
+* Learn about link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html [Checkmarx One SAST User Guide]
+
 
 
 
