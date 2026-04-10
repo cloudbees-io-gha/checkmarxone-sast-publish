@@ -105,7 +105,15 @@ runs:
 
     - name: Run Checkmarx One SAST plugin
       shell: bash
+      env:
+        CX_URL: ${{ inputs.url }}
+        CX_TENANT: ${{ inputs.tenant }}
+        CX_API_KEY: ${{ inputs.api-key }}
+        CX_SEVERITY: ${{ inputs.severity }}
       run: |
+        PROPS="{\"baseURL\": \"${CX_URL}\", \"tenant\": \"${CX_TENANT}\", \"apiKey\": \"${CX_API_KEY}\", \"severity\": \"${CX_SEVERITY}\"}"
+        echo "DEBUG: CHECKMARXONE_SAST_PROPS=$PROPS"
+
         docker run --rm \
           -u root \
           -v $GITHUB_WORKSPACE:$GITHUB_WORKSPACE \
@@ -113,7 +121,7 @@ runs:
           -e RUN_ID="${{ github.run_id }}" \
           -e JOB_ID="${{ github.job }}" \
           -e STEP_ID="${{ inputs.step-id }}" \
-          -e CHECKMARXONE_SAST_PROPS='{"baseURL": "${{ inputs.url }}", "tenant": "${{ inputs.tenant }}", "apiKey": "${{ inputs.api-key }}", "severity": "${{ inputs.severity }}"}' \
+          -e CHECKMARXONE_SAST_PROPS="$PROPS" \
           public.ecr.aws/l7o7z1g8/actions/assets-checkmarxone-sast-scanner:cacd851159d01128b1ee8af3ec0e4d1b1b193489 \
           --mode single
 
