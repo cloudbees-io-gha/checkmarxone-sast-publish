@@ -40,11 +40,12 @@ The scanning process is as follows:
 . Source code is packaged and prepared for analysis.
 . Source code is parsed and analyzed against Checkmarx's comprehensive security vulnerability database.
 . Security vulnerabilities and code quality issues are identified using advanced data flow analysis and pattern matching.
-. Results are reported with severity levels, detailed descriptions, and remediation guidance.
+. If a severity filter is specified, results are filtered to include only matching severity levels.
+. Results are reported with severity levels (Critical, Very High, High, Medium, Low), detailed descriptions, and remediation guidance.
 . The scan results are uploaded to the CloudBees platform.
 . Results are made available as actionable outputs for quality gates and downstream workflow steps.
 
-NOTE: For more information about Checkmarx One SAST, refer to the link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html
+NOTE: For more information about Checkmarx One SAST, refer to the link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html[Checkmarx One SAST Documentation].
 
 == Inputs
 
@@ -71,6 +72,11 @@ NOTE: For more information about Checkmarx One SAST, refer to the link:https://d
 | String
 | Yes
 | The Checkmarx One API key for authentication.
+
+| `severity`
+| String
+| No
+| Filter SAST results by severity. Comma-separated values: critical, high, medium, low, info. Leave empty to include all.
 
 | `ref`
 | String
@@ -418,6 +424,40 @@ jobs:
 
 ----
 
+=== Filter scan results by severity
+
+The following GHA workflow example scans code and filters results to show only critical and high severity findings.
+
+[source, yaml,role="default-expanded"]
+----
+name: Checkmarx One SAST scan with severity filter
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  checkmarxone-sast-filtered-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Checkmarx One SAST scan with severity filter
+        uses: cloudbees-io-gha/checkmarxone-sast-publish@v1
+        with:
+          url: ${{ vars.CHECKMARXONE_URL }}
+          tenant: ${{ vars.CHECKMARXONE_TENANT }}
+          api-key: ${{ secrets.CHECKMARXONE_API_KEY }}
+          severity: critical,high
+
+----
+
 == License
 
 This code is made available under the
@@ -427,7 +467,7 @@ link:https://opensource.org/license/mit/[MIT license].
 
 * Learn more about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/github-actions/intro[Using GitHub Actions with CloudBees platform].
 * Learn about link:https://docs.cloudbees.com/docs/cloudbees-platform/latest/[CloudBees platform].
-* Learn about link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html [Checkmarx One SAST User Guide]
+* Learn about link:https://docs.checkmarx.com/en/34965-324470-sast-scanner.html[Checkmarx One SAST User Guide].
 
 
 
