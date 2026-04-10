@@ -105,14 +105,19 @@ runs:
 
     - name: Run Checkmarx One SAST plugin
       shell: bash
-      env:
-        CX_URL: ${{ inputs.url }}
-        CX_TENANT: ${{ inputs.tenant }}
-        CX_API_KEY: ${{ inputs.api-key }}
-        CX_SEVERITY: ${{ inputs.severity }}
       run: |
-        PROPS="{\"baseURL\": \"${CX_URL}\", \"tenant\": \"${CX_TENANT}\", \"apiKey\": \"${CX_API_KEY}\"}"
-        echo "DEBUG: CHECKMARXONE_SAST_PROPS=$PROPS"
+        if [ -z "${{ inputs.severity }}" ]; then
+          SEVERITY_JSON="[]"
+        else
+          IFS=',' read -ra SEVERITIES <<< "${{ inputs.severity }}"
+          SEVERITY_JSON="["
+          for i in "${!SEVERITIES[@]}"; do
+            [ $i -gt 0 ] && SEVERITY_JSON+=","
+            TRIMMED=$(echo "${SEVERITIES[$i]}" | xargs)
+            SEVERITY_JSON+="\"$TRIMMED\""
+          done
+          SEVERITY_JSON+="]"
+        fi
 
         docker run --rm \
           -u root \
@@ -121,7 +126,7 @@ runs:
           -e RUN_ID="${{ github.run_id }}" \
           -e JOB_ID="${{ github.job }}" \
           -e STEP_ID="${{ inputs.step-id }}" \
-          -e CHECKMARXONE_SAST_PROPS="$PROPS" \
+          -e CHECKMARXONE_SAST_PROPS="{\"baseURL\": \"${{ inputs.url }}\", \"tenant\": \"${{ inputs.tenant }}\", \"apiKey\": \"${{ inputs.api-key }}\", \"severity\": $SEVERITY_JSON}" \
           public.ecr.aws/l7o7z1g8/actions/assets-checkmarxone-sast-scanner:cacd851159d01128b1ee8af3ec0e4d1b1b193489 \
           --mode single
 
@@ -152,4 +157,3 @@ runs:
           -e ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL \
           public.ecr.aws/l7o7z1g8/actions/assets-plugin-chain-utils:81b0453072476e33ca097de87ba13c5127b45f74 \
           process-outputs
-
