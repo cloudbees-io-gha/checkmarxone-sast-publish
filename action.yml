@@ -111,7 +111,7 @@ runs:
         CX_API_KEY: ${{ inputs.api-key }}
         CX_SEVERITY: ${{ inputs.severity }}
       run: |
-        PROPS="{\"baseURL\": \"${CX_URL}\", \"tenant\": \"${CX_TENANT}\", \"apiKey\": \"${CX_API_KEY}\", \"severity\": \"${CX_SEVERITY}\"}"
+        PROPS="{\"baseURL\": \"${CX_URL}\", \"tenant\": \"${CX_TENANT}\", \"apiKey\": \"${CX_API_KEY}\"}"
         echo "DEBUG: CHECKMARXONE_SAST_PROPS=$PROPS"
 
         docker run --rm \
