@@ -15,9 +15,9 @@ inputs:
   api-key:
     description: 'CheckmarxOne API key for authentication'
     required: true
-   severity:
+  severity:
     description: 'Filter SAST results by severity. Comma-separated values: critical, high, medium, low, info. Leave empty to include all.'
-    required: false    
+    required: false
   ref:
     description: 'Flag to indicate the ref that should be archived (same as supplied to checkout).'
     required: false
