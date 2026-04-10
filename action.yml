@@ -107,16 +107,16 @@ runs:
       shell: bash
       run: |
         if [ -z "${{ inputs.severity }}" ]; then
-          SEVERITY_JSON="[]"
+          SEVERITY_FILTER="[]"
         else
           IFS=',' read -ra SEVERITIES <<< "${{ inputs.severity }}"
-          SEVERITY_JSON="["
+          SEVERITY_FILTER="["
           for i in "${!SEVERITIES[@]}"; do
-            [ $i -gt 0 ] && SEVERITY_JSON+=","
+            [ $i -gt 0 ] && SEVERITY_FILTER+=","
             TRIMMED=$(echo "${SEVERITIES[$i]}" | xargs)
-            SEVERITY_JSON+="\"$TRIMMED\""
+            SEVERITY_FILTER+="\"$TRIMMED\""
           done
-          SEVERITY_JSON+="]"
+          SEVERITY_FILTER+="]"
         fi
 
         docker run --rm \
@@ -126,7 +126,7 @@ runs:
           -e RUN_ID="${{ github.run_id }}" \
           -e JOB_ID="${{ github.job }}" \
           -e STEP_ID="${{ inputs.step-id }}" \
-          -e CHECKMARXONE_SAST_PROPS="{\"baseURL\": \"${{ inputs.url }}\", \"tenant\": \"${{ inputs.tenant }}\", \"apiKey\": \"${{ inputs.api-key }}\", \"severity\": $SEVERITY_JSON}" \
+          -e CHECKMARXONE_SAST_PROPS="{\"baseURL\": \"${{ inputs.url }}\", \"tenant\": \"${{ inputs.tenant }}\", \"apiKey\": \"${{ inputs.api-key }}\", \"severity\": $SEVERITY_FILTER}" \
           public.ecr.aws/l7o7z1g8/actions/assets-checkmarxone-sast-scanner:cacd851159d01128b1ee8af3ec0e4d1b1b193489 \
           --mode single
 
